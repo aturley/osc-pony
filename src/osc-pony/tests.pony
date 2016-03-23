@@ -7,6 +7,7 @@ actor Main is TestList
   fun tag tests(test: PonyTest) =>
     test(_TestArgsString)
     test(_TestArgsFloat)
+    test(_TestParser)
 
 
 class iso _TestArgsString is UnitTest
@@ -38,3 +39,21 @@ class iso _TestArgsFloat is UnitTest
       end
     end
 
+class iso _TestParser is UnitTest
+  fun name(): String => "OSC Parser"
+
+  fun apply(h: TestHelper) =>
+    let x = [as U8: '/','a','b', 'c', 0,0,0,0, ',','f',0,0, 0xe3,0x06,0x82,0xd1]
+    try
+      let y = OscParser.parse(x).toBytes()
+      h.assert_eq[USize](x.size(), y.size())
+      for i in Range[USize](0, y.size().min(x.size())) do
+        try
+          h.assert_eq[U8](x(i), y(i))
+        else
+          h.assert_eq[Bool](true, false)
+        end
+      end
+    else
+      h.assert_eq[Bool](true, false)
+    end

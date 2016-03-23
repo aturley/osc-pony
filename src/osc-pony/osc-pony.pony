@@ -51,16 +51,16 @@ type Argument is OscData
 type Arguments is Array[Argument val]
 
 class OscMessage
-  let _address: String val
-  let _arguments: Arguments val
+  let address: String val
+  let arguments: Arguments val
 
-  new val create(address: String val, arguments: Arguments val) =>
-    _address = address
-    _arguments = arguments
+  new val create(address': String val, arguments': Arguments val) =>
+    address = address'
+    arguments = arguments'
 
   fun _buildTypeString(): String ref =>
     var argumentsString = String().push(',')
-    for arg in _arguments.values() do
+    for arg in arguments.values() do
       argumentsString.push(arg.toTypeByte())
     end
     argumentsString
@@ -68,12 +68,12 @@ class OscMessage
   fun val toBytes(): Array[U8 val] val =>
     recover
     var parts: Array[U8 val] = Array[U8 val].create()
-    var address = OscString(_address)
+    var oscAddress = OscString(address)
     var types = OscString(_buildTypeString().clone())
 
-    parts.concat(address.toBytes().values())
+    parts.concat(oscAddress.toBytes().values())
     parts.concat(types.toBytes().values())
-    for arg in _arguments.values() do
+    for arg in arguments.values() do
       parts.concat(arg.toBytes().values())
     end
 
