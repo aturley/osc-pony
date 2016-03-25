@@ -22,30 +22,40 @@ class OscString is OscData
   fun toTypeByte(): U8 =>
     's'
 
+  fun val value(): String val => _data
+
 class OscInt is OscData
   let _data: I32
   new val create(data: I32) =>
     _data = data
+
   fun val toBytes(): Array[U8 val] val =>
     recover [as U8 val: U8().from[I32]((_data >> 24) and 0xFF),
                         U8().from[I32]((_data >> 16) and 0xFF),
                         U8().from[I32]((_data >> 8) and 0xFF),
                         U8().from[I32](_data and 0xFF)] end
+
   fun toTypeByte(): U8 =>
     'i'
+
+  fun val value(): I32 => _data
 
 class OscFloat is OscData
   let _data: F32
   new val create(data: F32) =>
     _data = data
+
   fun val toBytes(): Array[U8 val] val =>
     let bits = _data.bits()
     recover [as U8 val: U8().from[U32]((bits  >> 24) and 0xFF),
                         U8().from[U32]((bits >> 16) and 0xFF),
                         U8().from[U32]((bits >> 8) and 0xFF),
                         U8().from[U32](bits and 0xFF)] end
+
   fun toTypeByte(): U8 =>
     'f'
+
+  fun val value(): F32 val => _data
 
 type Argument is OscData
 type Arguments is Array[Argument val]
