@@ -1,10 +1,28 @@
 use "collections"
 
 interface OscData
+  """
+  This is the base class for all OSC message arguments.
+  """
+
   fun val toBytes(): Array[U8] val
+  """
+  Convert the argument into the appropriate byte array.
+  """
+
   fun toTypeByte(): U8
+  """
+  Return the byte that represents the type of the argument for the
+  type string.
+  """
 
 class OscString is OscData
+  """
+  This class represents an OSC string. Strings are made up of quartets
+  of bytes and terminated with 1 or more '\0' characters. Therefore
+  the size of an OSC string is always a multiple of 4.
+  """
+  
   let _data: String
 
   new val create(data: String) =>
@@ -61,10 +79,25 @@ type Argument is OscData
 type Arguments is Array[Argument val]
 
 class OscMessage
+  """
+
+  This class represents OSC messages, as defined by the OSC standard
+  (http://opensoundcontrol.org/). The byte reprsentation of an OSC
+  messages consist of an address string, a type string, and zero or
+  more arguments. Because the type string can be derived from the
+  types of the arguments, the user of this class is not responsible
+  for providing a type string when creating an `OscMessage`.
+
+  """
+
   let address: String val
   let arguments: Arguments val
 
   new val create(address': String val, arguments': Arguments val) =>
+  """
+  Create an OscMessage from an address string and one or more OscData
+  arguments.
+  """
     address = address'
     arguments = arguments'
 
@@ -76,6 +109,10 @@ class OscMessage
     argumentsString
 
   fun val toBytes(): Array[U8 val] val =>
+  """
+  Generate a byte array that represents an OSC message as defined by
+  the OSC standard.
+  """
     recover
     var parts: Array[U8 val] = Array[U8 val].create()
     var oscAddress = OscString(address)
@@ -92,6 +129,9 @@ class OscMessage
 
 
   new val fromBytes(input: Array[U8] val) ? =>
+  """
+  Take an Array[U8] and create the corresponding OSC Message.
+  """
     let addressLimits = StringLimits.fromBytes(input, 0)
     let typesLimits = StringLimits.fromBytes(input, addressLimits.e() + 1)
     let argsCount = typesLimits.sz() - 1
