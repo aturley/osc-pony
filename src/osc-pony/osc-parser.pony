@@ -1,11 +1,11 @@
 use "collections"
 
-interface Limits
+interface _Limits
   fun s(): I32
   fun e(): I32
   fun sz(): I32
 
-class StringLimits is Limits
+class _StringLimits is _Limits
   let _s: I32
   let _e: I32
   let _sz: I32
@@ -40,7 +40,7 @@ class StringLimits is Limits
   fun e(): I32 => _e
   fun sz(): I32 => _sz
 
-class IntLimits
+class _IntLimits is _Limits
   let _s: I32
   let _e: I32
   let _sz: I32
@@ -65,7 +65,7 @@ class IntLimits
   fun e(): I32 => _e
   fun sz(): I32 => _sz
 
-class FloatLimits
+class _FloatLimits is _Limits
   let _s: I32
   let _e: I32
   let _sz: I32

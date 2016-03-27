@@ -132,27 +132,27 @@ class OscMessage
   """
   Take an Array[U8] and create the corresponding OSC Message.
   """
-    let addressLimits = StringLimits.fromBytes(input, 0)
-    let typesLimits = StringLimits.fromBytes(input, addressLimits.e() + 1)
+    let addressLimits = _StringLimits.fromBytes(input, 0)
+    let typesLimits = _StringLimits.fromBytes(input, addressLimits.e() + 1)
     let argsCount = typesLimits.sz() - 1
 
-    var last: (StringLimits val | FloatLimits val | IntLimits val) = typesLimits
+    var last: (_StringLimits val | _FloatLimits val | _IntLimits val) = typesLimits
 
     var oscArgs: Array[OscData val] trn = recover Array[OscData val] end
 
     for i in Range[I32](1, typesLimits.sz()) do
       last = match input(USize.from[I32](typesLimits.s() + i))
-        | 's' => StringLimits.fromBytes(input, last.e() + 1)
-        | 'f' => FloatLimits.fromBytes(input, last.e() + 1)
-        | 'i' => IntLimits.fromBytes(input, last.e() + 1)
+        | 's' => _StringLimits.fromBytes(input, last.e() + 1)
+        | 'f' => _FloatLimits.fromBytes(input, last.e() + 1)
+        | 'i' => _IntLimits.fromBytes(input, last.e() + 1)
         else
           error
         end
 
       match last
-        | let str: StringLimits val => oscArgs.push(OscString(str.extractFromBytes(input)))
-        | let fl: FloatLimits val => oscArgs.push(OscFloat(fl.extractFromBytes(input)))
-        | let int: IntLimits val => oscArgs.push(OscInt(int.extractFromBytes(input)))
+        | let str: _StringLimits val => oscArgs.push(OscString(str.extractFromBytes(input)))
+        | let fl: _FloatLimits val => oscArgs.push(OscFloat(fl.extractFromBytes(input)))
+        | let int: _IntLimits val => oscArgs.push(OscInt(int.extractFromBytes(input)))
       end
     end
 

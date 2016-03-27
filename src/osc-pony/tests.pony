@@ -47,7 +47,7 @@ class iso _TestParserStringLimits is UnitTest
   fun apply(h: TestHelper) =>
     let bytes: Array[U8] val = recover [as U8: 'a','b','c','d', 'q','r',0,0, 'e','f','g',0] end
     try
-      let limits = StringLimits.fromBytes(bytes, 0)
+      let limits = _StringLimits.fromBytes(bytes, 0)
       h.assert_eq[I32](limits.s(), 0)
       h.assert_eq[I32](limits.e(), 7)
       h.assert_eq[I32](limits.sz(), 6)
@@ -57,7 +57,7 @@ class iso _TestParserStringLimits is UnitTest
     end
 
     try
-      let limits = StringLimits.fromBytes(bytes, 4)
+      let limits = _StringLimits.fromBytes(bytes, 4)
       h.assert_eq[I32](limits.s(), 4)
       h.assert_eq[I32](limits.e(), 7)
       h.assert_eq[I32](limits.sz(), 2)
@@ -72,7 +72,7 @@ class iso _TestParserIntLimits is UnitTest
   fun apply(h: TestHelper) =>
     let bytes: Array[U8] val = recover [as U8: 'a','b','c',0, 0,0,0,1, 'e','f','g',0] end
     try
-      let limits = IntLimits.fromBytes(bytes, 4)
+      let limits = _IntLimits.fromBytes(bytes, 4)
       h.assert_eq[I32](limits.s(), 4)
       h.assert_eq[I32](limits.e(), 7)
       h.assert_eq[I32](limits.sz(), 4)
@@ -87,7 +87,7 @@ class iso _TestParserFloatLimits is UnitTest
   fun apply(h: TestHelper) =>
     let bytes: Array[U8] val = recover [as U8: 'a','b','c',0, 0x43,0x06,0x82,0xd1, 'e','f','g',0] end
     try
-      let limits = FloatLimits.fromBytes(bytes, 4)
+      let limits = _FloatLimits.fromBytes(bytes, 4)
       h.assert_eq[I32](limits.s(), 4)
       h.assert_eq[I32](limits.e(), 7)
       h.assert_eq[I32](limits.sz(), 4)
