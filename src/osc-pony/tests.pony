@@ -47,53 +47,67 @@ class iso _TestParserStringLimits is UnitTest
   fun apply(h: TestHelper) =>
     let bytes: Array[U8] val = recover [as U8: 'a','b','c','d', 'q','r',0,0, 'e','f','g',0] end
     try
-      let limits = _StringLimits.fromBytes(bytes, 0)
-      h.assert_eq[I32](limits.s(), 0)
-      h.assert_eq[I32](limits.e(), 7)
-      h.assert_eq[I32](limits.sz(), 6)
-      h.assert_eq[String](limits.extractFromBytes(bytes), "abcdqr")
+      (let str, let rest) = OscString("").fromBytes(bytes)
+      h.assert_eq[USize](rest.size(), 4)
+      match str
+      | let s: OscString val =>
+        h.assert_eq[String](s.value(), "abcdqr")
+      else
+        h.fail()
+      end
     else
-      h.assert_eq[Bool](true, false)
+      h.fail()
     end
 
     try
-      let limits = _StringLimits.fromBytes(bytes, 4)
-      h.assert_eq[I32](limits.s(), 4)
-      h.assert_eq[I32](limits.e(), 7)
-      h.assert_eq[I32](limits.sz(), 2)
-      h.assert_eq[String](limits.extractFromBytes(bytes), "qr")
+      var rest: Array[U8] val
+      (_, rest) = OscString("").fromBytes(bytes)
+      (let str, rest) = OscString("").fromBytes(rest)
+      h.assert_eq[USize](rest.size(), 0)
+      match str
+      | let s: OscString val =>
+        h.assert_eq[String](s.value(), "efg")
+      else
+        h.fail()
+      end
     else
-      h.assert_eq[Bool](true, false)
+      h.fail()
     end
 
 class iso _TestParserIntLimits is UnitTest
   fun name(): String => "OSC Parser: IntLimits"
 
   fun apply(h: TestHelper) =>
-    let bytes: Array[U8] val = recover [as U8: 'a','b','c',0, 0,0,0,1, 'e','f','g',0] end
+    let bytes: Array[U8] val = recover [as U8: 0,0,0,1, 'e','f','g',0] end
     try
-      let limits = _IntLimits.fromBytes(bytes, 4)
-      h.assert_eq[I32](limits.s(), 4)
-      h.assert_eq[I32](limits.e(), 7)
-      h.assert_eq[I32](limits.sz(), 4)
-      h.assert_eq[I32](limits.extractFromBytes(bytes), 1)
+      (let int, let rest) = OscInt(0).fromBytes(bytes)
+      h.assert_eq[USize](rest.size(), 4)
+      match int
+      | let i: OscInt val =>
+        h.assert_eq[I32](i.value(), 1)
+      else
+        h.fail()
+      end
     else
-      h.assert_eq[Bool](true, false)
+      h.fail()
     end
 
 class iso _TestParserFloatLimits is UnitTest
   fun name(): String => "OSC Parser: FloatLimits"
 
   fun apply(h: TestHelper) =>
-    let bytes: Array[U8] val = recover [as U8: 'a','b','c',0, 0x43,0x06,0x82,0xd1, 'e','f','g',0] end
+    let bytes: Array[U8] val = recover [as U8: 0x43,0x06,0x82,0xd1, 'e','f','g',0] end
     try
-      let limits = _FloatLimits.fromBytes(bytes, 4)
-      h.assert_eq[I32](limits.s(), 4)
-      h.assert_eq[I32](limits.e(), 7)
-      h.assert_eq[I32](limits.sz(), 4)
-      h.assert_eq[F32](limits.extractFromBytes(bytes), 134.511)
+      (let float, let rest) = OscFloat(0).fromBytes(bytes)
+      h.assert_eq[USize](rest.size(), 4)
+      match float
+      | let f: OscFloat val =>
+        h.assert_eq[F32](f.value(), 134.511)
+      else
+        h.fail()
+      end
     else
-      h.assert_eq[Bool](true, false)
+      h.fail()
     end
 
 class iso _TestParser is UnitTest
@@ -108,9 +122,9 @@ class iso _TestParser is UnitTest
         try
           h.assert_eq[U8](x(i), y(i))
         else
-          h.assert_eq[Bool](true, false)
+          h.fail()
         end
       end
     else
-      h.assert_eq[Bool](true, false)
+      h.fail()
     end

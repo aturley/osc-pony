@@ -10,6 +10,12 @@ interface OscData
   Convert the argument into the appropriate byte array.
   """
 
+  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ?
+  """
+  Convert the bytes to an OscData object, and also returns the
+  remainder of the bytes.
+  """
+
   fun toTypeByte(): U8
   """
   Return the byte that represents the type of the argument for the
@@ -36,6 +42,33 @@ class OscString is OscData
       Array[U8]().concat(_data.values())
                  .concat(_createPadArray().values())
     end
+
+  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ? =>
+    // find the end of the string data
+    var lastByte: USize = 3
+    while (lastByte < bytes.size()) and (bytes(lastByte) != '\0') do
+      lastByte = lastByte + 4
+    end
+    if lastByte >= bytes.size() then
+      error
+    end
+
+    // find the first null in the string
+    var firstNull: USize = 0
+    while bytes(firstNull) != '\0' do
+      firstNull = firstNull + 1
+    end
+
+    // create the string
+    var str: String val = recover
+      let s = String()
+
+      for i in Range[USize](0, firstNull) do
+        s.push(bytes(i))
+      end
+      consume s
+    end
+    (recover OscString(str.clone()) end, recover bytes.slice(lastByte + 1) end)
                           
   fun toTypeByte(): U8 =>
     's'
@@ -53,6 +86,13 @@ class OscInt is OscData
                         U8().from[I32]((_data >> 8) and 0xFF),
                         U8().from[I32](_data and 0xFF)] end
 
+  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ? =>
+    let num = I32.from[U32]((U32.from[U8](bytes(0)) << 24) +
+                            (U32.from[U8](bytes(1)) << 16) +
+                            (U32.from[U8](bytes(2)) << 8) +
+                            U32.from[U8](bytes(3)))
+    (recover OscInt(num) end, recover bytes.slice(4) end)
+
   fun toTypeByte(): U8 =>
     'i'
 
@@ -69,6 +109,13 @@ class OscFloat is OscData
                         U8().from[U32]((bits >> 16) and 0xFF),
                         U8().from[U32]((bits >> 8) and 0xFF),
                         U8().from[U32](bits and 0xFF)] end
+
+  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ? =>
+    let num = F32.from_bits((U32.from[U8](bytes(0)) << 24) +
+                            (U32.from[U8](bytes(1)) << 16) +
+                            (U32.from[U8](bytes(2)) << 8) +
+                            (U32.from[U8](bytes(3))))
+    (recover OscFloat(num) end, recover bytes.slice(4) end)
 
   fun toTypeByte(): U8 =>
     'f'
@@ -132,29 +179,48 @@ class OscMessage
   """
   Take an Array[U8] and create the corresponding OSC Message.
   """
-    let addressLimits = _StringLimits.fromBytes(input, 0)
-    let typesLimits = _StringLimits.fromBytes(input, addressLimits.e() + 1)
-    let argsCount = typesLimits.sz() - 1
+    let stringBuilder = OscString("")
+    let intBuilder = OscInt(0)
+    let floatBuilder = OscFloat(0.0)
+    var rest: Array[U8] val
 
-    var last: (_StringLimits val | _FloatLimits val | _IntLimits val) = typesLimits
+    (let oscAddress, rest) = stringBuilder.fromBytes(input)
+
+    address = match oscAddress
+    | let a: OscString val => a.value()
+    else
+      error
+    end
+
+    (let oscArgTypes, rest) = stringBuilder.fromBytes(rest)
+
+    let argTypes = match oscArgTypes
+    | let t: OscString val => t.value()
+    else
+      error
+    end
+
+    let argsCount = argTypes.size() - 1
 
     var oscArgs: Array[OscData val] trn = recover Array[OscData val] end
 
-    for i in Range[I32](1, typesLimits.sz()) do
-      last = match input(USize.from[I32](typesLimits.s() + i))
-        | 's' => _StringLimits.fromBytes(input, last.e() + 1)
-        | 'f' => _FloatLimits.fromBytes(input, last.e() + 1)
-        | 'i' => _IntLimits.fromBytes(input, last.e() + 1)
+    for argTypeIndex in Range[USize](1, argsCount + 1) do
+      match argTypes(argTypeIndex)
+        | 's' =>
+          (let s, rest) = stringBuilder.fromBytes(rest)
+          oscArgs.push(s)
+          rest
+        | 'f' =>
+          (let f, rest) = floatBuilder.fromBytes(rest)
+          oscArgs.push(f)
+          rest
+        | 'i' =>
+          (let i, rest) = intBuilder.fromBytes(rest)
+          oscArgs.push(i)
+          rest
         else
           error
         end
-
-      match last
-        | let str: _StringLimits val => oscArgs.push(OscString(str.extractFromBytes(input)))
-        | let fl: _FloatLimits val => oscArgs.push(OscFloat(fl.extractFromBytes(input)))
-        | let int: _IntLimits val => oscArgs.push(OscInt(int.extractFromBytes(input)))
-      end
     end
 
-    address = addressLimits.extractFromBytes(input)
     arguments = consume oscArgs
