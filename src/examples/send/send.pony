@@ -9,12 +9,10 @@ use "../../osc-pony"
 use "net"
 
 class UdpClient is UDPNotify
-  let _env: Env
   let _destination: IPAddress
   let _message: OscMessage val
 
   new iso create(env: Env, destination: IPAddress, message: OscMessage val) =>
-    _env = env
     _destination = destination
     _message = message
 
