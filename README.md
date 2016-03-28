@@ -118,4 +118,6 @@ ponyc --path=/pony/libraries /my/program
 ## TODO
 
 * Support other arugment types.
+* Support for `b` type to meet the OSC 1.0 specification.
+* Support for `T`, `F`, `N`, `I`, and `t` types to meet the OSC 1.1 specification.
 * Support user-defined argument types.
