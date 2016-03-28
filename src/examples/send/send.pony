@@ -20,15 +20,6 @@ class UdpClient is UDPNotify
     sock.write(_message.toBytes(), _destination)
     sock.dispose()
 
-  fun ref not_listening(sock: UDPSocket ref) =>
-    None
-
-  fun ref received(sock: UDPSocket ref, data: Array[U8] iso, from: IPAddress) =>
-    None
-
-  fun ref closed(sock: UDPSocket ref) =>
-    None
-    
 actor Main
   new create(env: Env) =>
     let host = try

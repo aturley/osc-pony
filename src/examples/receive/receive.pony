@@ -14,11 +14,6 @@ class UdpClient is UDPNotify
   new iso create(env: Env) =>
     _env = env
 
-  fun ref listening(sock: UDPSocket ref) =>
-    None
-
-  fun ref not_listening(sock: UDPSocket ref) =>
-    None
   fun ref received(sock: UDPSocket ref, data: Array[U8] iso, from: IPAddress) =>
     try
       let message = OscMessage.fromBytes(consume data)
@@ -36,9 +31,6 @@ class UdpClient is UDPNotify
       _env.err.print("Error decoding incoming message.")
     end
 
-  fun ref closed(sock: UDPSocket ref) =>
-    None
-    
 actor Main
   new create(env: Env) =>
     let host = try
