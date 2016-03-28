@@ -127,14 +127,12 @@ type Arguments is Array[Argument val]
 
 class OscMessage
   """
-
   This class represents OSC messages, as defined by the OSC standard
   (http://opensoundcontrol.org/). The byte reprsentation of an OSC
   messages consist of an address string, a type string, and zero or
   more arguments. Because the type string can be derived from the
   types of the arguments, the user of this class is not responsible
   for providing a type string when creating an `OscMessage`.
-
   """
 
   let address: String val
@@ -175,13 +173,12 @@ class OscMessage
     end
 
 
-  new val fromBytes(input: Array[U8] val) ? =>
+  new val fromBytes(input: Array[U8] val,
+                    knownTypes: Array[OscData val] val = recover [as OscData val: OscString(""), OscInt(0), OscFloat(0.0)] end) ? =>
   """
   Take an Array[U8] and create the corresponding OSC Message.
   """
     let stringBuilder = OscString("")
-    let intBuilder = OscInt(0)
-    let floatBuilder = OscFloat(0.0)
     var rest: Array[U8] val
 
     (let oscAddress, rest) = stringBuilder.fromBytes(input)
@@ -204,23 +201,22 @@ class OscMessage
 
     var oscArgs: Array[OscData val] trn = recover Array[OscData val] end
 
+    let dispatch: Array[(OscData val | None val)] = Array[(OscData val | None val)].init(None, 256)
+    for knownType in knownTypes.values() do
+      try
+        dispatch.update((USize.from[U8](knownType.toTypeByte())), knownType)
+      end
+    end
+
     for argTypeIndex in Range[USize](1, argsCount + 1) do
-      match argTypes(argTypeIndex)
-        | 's' =>
-          (let s, rest) = stringBuilder.fromBytes(rest)
-          oscArgs.push(s)
-          rest
-        | 'f' =>
-          (let f, rest) = floatBuilder.fromBytes(rest)
-          oscArgs.push(f)
-          rest
-        | 'i' =>
-          (let i, rest) = intBuilder.fromBytes(rest)
-          oscArgs.push(i)
-          rest
-        else
-          error
-        end
+      let builder = dispatch(USize.from[U8](argTypes(argTypeIndex)))
+      match builder
+      | let b: OscData val =>
+        (let a, rest) = b.fromBytes(rest)
+        oscArgs.push(a)
+      else
+        error
+      end
     end
 
     arguments = consume oscArgs
