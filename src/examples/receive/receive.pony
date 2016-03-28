@@ -1,8 +1,10 @@
-// This program receives an OSC message. By default the message is
-// received on localhost:6447.  The message is compatible with the
-// [Chuck](http://chuck.cs.princeton.edu) example OSC program that can
-// be found in `examples/osc/OSC_send.ck` when you download the Chuck
-// source code.
+"""
+This program receives an OSC message. By default the message is
+received on localhost:6447.  The message is compatible with the
+[Chuck](http://chuck.cs.princeton.edu) example OSC program that can
+be found in `examples/osc/OSC_send.ck` when you download the Chuck
+source code.
+"""
 
 use "../../osc-pony"
 
