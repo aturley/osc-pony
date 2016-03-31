@@ -173,6 +173,70 @@ class OscBlob is OscData
 
   fun val value(): Array[U8] val => _data
 
+class OscTrue is OscData
+  let _data: Bool
+  new val create() =>
+    _data = true
+
+  fun val toBytes(): Array[U8 val] val =>
+    recover Array[U8](0) end
+
+  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) =>
+    (OscTrue, recover bytes.slice(0) end)
+
+  fun toTypeByte(): U8 =>
+    'T'
+
+  fun val value(): Bool => _data
+
+class OscFalse is OscData
+  let _data: Bool
+  new val create() =>
+    _data = true
+
+  fun val toBytes(): Array[U8 val] val =>
+    recover Array[U8](0) end
+
+  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) =>
+    (OscFalse, recover bytes.slice(0) end)
+
+  fun toTypeByte(): U8 =>
+    'F'
+
+  fun val value(): Bool => _data
+
+class OscNull is OscData
+  let _data: None
+  new val create() =>
+    _data = None
+
+  fun val toBytes(): Array[U8 val] val =>
+    recover Array[U8](0) end
+
+  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) =>
+    (OscNull, recover bytes.slice(0) end)
+
+  fun toTypeByte(): U8 =>
+    'N'
+
+  fun val value(): None => _data
+
+class OscImpulse is OscData
+  let _data: None
+  new val create() =>
+    _data = None
+
+  fun val toBytes(): Array[U8 val] val =>
+    recover Array[U8](0) end
+
+  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) =>
+    (OscImpulse, recover bytes.slice(0) end)
+
+  fun toTypeByte(): U8 =>
+    'I'
+
+  fun val value(): None => _data
+
 type Argument is OscData
 type Arguments is Array[Argument val]
 
@@ -225,7 +289,9 @@ class OscMessage
 
 
   new val fromBytes(input: Array[U8] val,
-                    knownTypes: Array[OscData val] val = recover [as OscData val: OscString(""), OscInt(0), OscFloat(0.0), OscBlob(recover [0] end)] end) ? =>
+                    knownTypes: Array[OscData val] val =
+                    recover [as OscData val: OscString(""), OscInt(0), OscFloat(0.0), OscBlob(recover [0] end),
+                                             OscTrue, OscFalse, OscNull, OscImpulse] end) ? =>
   """
   Take an Array[U8] and create the corresponding OSC Message.
   """
