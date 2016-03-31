@@ -117,6 +117,5 @@ ponyc --path=/pony/libraries /my/program
 
 ## TODO
 
-* Support for `b` type to meet the OSC 1.0 specification.
-* Support for `T`, `F`, `N`, `I`, and `t` types to meet the OSC 1.1 specification.
+* Support bundles
 * Support user-defined argument types.
