@@ -11,6 +11,7 @@ actor Main is TestList
     test(_TestParserStringLimits)
     test(_TestParserFloatLimits)
     test(_TestParserIntLimits)
+    test(_TestParserBlob)
 
 class iso _TestArgsString is UnitTest
   fun name(): String => "OSC Arguments: String"
@@ -26,7 +27,6 @@ class iso _TestArgsString is UnitTest
         h.assert_eq[U8](y(i), x(i))
       end
     end
-
 
 class iso _TestArgsFloat is UnitTest
   fun name(): String => "OSC Arguments: Float"
@@ -110,11 +110,35 @@ class iso _TestParserFloatLimits is UnitTest
       h.fail()
     end
 
+class iso _TestParserBlob is UnitTest
+  fun name(): String => "OSC Parser: Blob"
+
+  fun apply(h: TestHelper) =>
+    let bytes: Array[U8] val = recover [as U8: 0x00,0x00,0x00,0x02, 'e','f',0,0, 'a', 'b', 'c', 'd'] end
+    try
+      (let blob, let rest) = OscBlob(recover [as U8: 1] end).fromBytes(bytes)
+      h.assert_eq[USize](rest.size(), 4)
+      match blob
+      | let b: OscBlob val =>
+        h.assert_eq[USize](2, b.value().size())
+        h.assert_eq[U8]('e', b.value()(0))
+        h.assert_eq[U8]('f', b.value()(1))
+      else
+        h.fail()
+      end
+    else
+      h.fail()
+    end
+
 class iso _TestParser is UnitTest
   fun name(): String => "OSC Parser"
 
   fun apply(h: TestHelper) =>
-    let x: Array[U8] val = recover [as U8: '/','a','b','c', 0,0,0,0, ',','f','i','s', 0,0,0,0, 0xe3,0x06,0x82,0xd1, 0,0,0,2, 'a','b',0,0] end
+    let x: Array[U8] val = recover [as U8: '/','a','b','c', 0,0,0,0,
+                                           ',','f','i','s', 'b',0,0,0,
+                                           0xe3,0x06,0x82,0xd1, 0,0,0,2, 
+                                           'a','b',0,0,
+                                           0,0,0,3, 'e','f','g',0] end
     try
       let y = OscMessage.fromBytes(x).toBytes()
       h.assert_eq[USize](x.size(), y.size())

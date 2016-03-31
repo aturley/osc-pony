@@ -122,6 +122,57 @@ class OscFloat is OscData
 
   fun val value(): F32 val => _data
 
+class OscBlob is OscData
+  """
+  This class represents an OSC blob. Blobs are made up of quartets
+  of bytes and terminated with 1 or more '\0' characters. Therefore
+  the size of an OSC blob is always a multiple of 4.
+  """
+  
+  let _data: Array[U8] val
+
+  new val create(data: Array[U8] val) =>
+    _data = data
+
+  fun val _createPadArray(): Array[U8] =>
+    // pad to the next quartet of bytes if necessary
+    let mapping = [as USize: 0, 3, 2, 1]
+    let pad_size = try mapping(_data.size() % 4) else 0 end
+    Array[U8]().init(0, pad_size)
+
+  fun val toBytes(): Array[U8] val =>
+    let size: U32 = U32.from[USize](_data.size())
+    recover
+      Array[U8]().push(U8.from[U32]((size >> 24) and 0xFF))
+                 .push(U8.from[U32]((size >> 16) and 0xFF))
+                 .push(U8.from[U32]((size >> 8) and 0xFF))
+                 .push(U8.from[U32]((size and 0xFF)))
+                 .concat(_data.values())
+                 .concat(_createPadArray().values())
+    end
+
+  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ? =>
+    let size = USize.from[U32]((U32.from[U8](bytes(0)) << 24) +
+                              (U32.from[U8](bytes(1)) << 16) +
+                              (U32.from[U8](bytes(2)) << 8) +
+                              U32.from[U8](bytes(3)))
+
+    let data: Array[U8] val = recover
+      let d = Array[U8](size)
+      bytes.copy_to(d, 4, 0, size)
+      consume d
+    end
+
+    // Data comes in quartets of bytes, find the quartet size
+    let quartet_size = (((size - 1) / 4) + 1) * 4
+
+    (OscBlob(data), recover bytes.slice(4 + quartet_size) end)
+                          
+  fun toTypeByte(): U8 =>
+    'b'
+
+  fun val value(): Array[U8] val => _data
+
 type Argument is OscData
 type Arguments is Array[Argument val]
 
@@ -174,7 +225,7 @@ class OscMessage
 
 
   new val fromBytes(input: Array[U8] val,
-                    knownTypes: Array[OscData val] val = recover [as OscData val: OscString(""), OscInt(0), OscFloat(0.0)] end) ? =>
+                    knownTypes: Array[OscData val] val = recover [as OscData val: OscString(""), OscInt(0), OscFloat(0.0), OscBlob(recover [0] end)] end) ? =>
   """
   Take an Array[U8] and create the corresponding OSC Message.
   """
