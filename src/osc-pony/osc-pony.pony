@@ -205,6 +205,41 @@ class OscFalse is OscData
 
   fun val value(): Bool => _data
 
+class OscTimestamp is OscData
+  let _data: U64
+
+  new val create(data: U64) =>
+    _data = data
+
+  fun val toBytes(): Array[U8] val =>
+    recover
+      Array[U8]().push(U8.from[U64]((_data >> 56) and 0xFF))
+                 .push(U8.from[U64]((_data >> 48) and 0xFF))
+                 .push(U8.from[U64]((_data >> 40) and 0xFF))
+                 .push(U8.from[U64]((_data >> 32) and 0xFF))
+                 .push(U8.from[U64]((_data >> 24) and 0xFF))
+                 .push(U8.from[U64]((_data >> 16) and 0xFF))
+                 .push(U8.from[U64]((_data >> 8) and 0xFF))
+                 .push(U8.from[U64]((_data and 0xFF)))
+    end
+
+  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ? =>
+    let data = ((U64.from[U8](bytes(0)) << 56) +
+                (U64.from[U8](bytes(1)) << 48) +
+                (U64.from[U8](bytes(2)) << 40) +
+                (U64.from[U8](bytes(3)) << 32) +
+                (U64.from[U8](bytes(4)) << 24) +
+                (U64.from[U8](bytes(5)) << 16) +
+                (U64.from[U8](bytes(6)) << 8) +
+                U64.from[U8](bytes(7)))
+
+    (OscTimestamp(data), recover bytes.slice(8) end)
+                          
+  fun toTypeByte(): U8 =>
+    't'
+
+  fun val value(): U64 => _data
+
 class OscNull is OscData
   let _data: None
   new val create() =>
@@ -291,7 +326,7 @@ class OscMessage
   new val fromBytes(input: Array[U8] val,
                     knownTypes: Array[OscData val] val =
                     recover [as OscData val: OscString(""), OscInt(0), OscFloat(0.0), OscBlob(recover [0] end),
-                                             OscTrue, OscFalse, OscNull, OscImpulse] end) ? =>
+                                             OscTrue, OscFalse, OscNull, OscImpulse, OscTimestamp(0)] end) ? =>
   """
   Take an Array[U8] and create the corresponding OSC Message.
   """

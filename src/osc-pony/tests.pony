@@ -135,11 +135,12 @@ class iso _TestParser is UnitTest
 
   fun apply(h: TestHelper) =>
     let x: Array[U8] val = recover [as U8: '/','a','b','c', 0,0,0,0,
-                                           ',','f','i','s', 'b','T','F','I', 'N','s',0,0,
+                                           ',','f','i','s', 'b','T','F','I', 'N','s','t',0,
                                            0xe3,0x06,0x82,0xd1, 0,0,0,2, 
                                            'a','b',0,0,
                                            0,0,0,3, 'e','f','g',0,
-                                           'a',0,0,0] end
+                                           'a',0,0,0,
+                                           0,0,0,0, 0,0,0,1] end
     try
       let y = OscMessage.fromBytes(x).toBytes()
       h.assert_eq[USize](x.size(), y.size())
