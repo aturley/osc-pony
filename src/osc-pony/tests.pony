@@ -142,7 +142,7 @@ class iso _TestParser is UnitTest
                                            'a',0,0,0,
                                            0,0,0,0, 0,0,0,1] end
     try
-      let y = OscMessage.fromBytes(x).toBytes()
+      let y = OSCDecoder.from_bytes(x).toBytes()
       h.assert_eq[USize](x.size(), y.size())
       for i in Range[USize](0, y.size().min(x.size())) do
         try

@@ -18,7 +18,7 @@ class UdpClient is UDPNotify
 
   fun ref received(sock: UDPSocket ref, data: Array[U8] iso, from: IPAddress) =>
     try
-      let message = OscMessage.fromBytes(consume data)
+      let message = OSCDecoder.from_bytes(consume data) as OscMessage val
       _env.out.print("Address: ".add(message.address))
       for arg in message.arguments.values() do
         match arg

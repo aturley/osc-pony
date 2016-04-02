@@ -84,7 +84,7 @@ To receive an OSC message and print out its address and arguments:
 ```
   let data: Array[U8] val = ... // data from somewhere
 
-  let message = OscMessage.fromBytes(data)
+  let message = OSCParser.fromBytes(data)
   _env.out.print("Address: ".add(message.address))
   for arg in message.arguments.values() do
     match arg
@@ -104,7 +104,7 @@ keyword and passing the location of the library to the compiler with
 the `--path` argument. For example, your program would contain the line:
 
 ```
-use 'osc-pony'
+use "osc-pony"
 ```
 
 Assuming that all of your pony libraries are in a directory called
