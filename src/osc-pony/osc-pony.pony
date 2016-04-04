@@ -309,17 +309,85 @@ class OscMessage
   the OSC standard.
   """
     recover
-    var parts: Array[U8 val] = Array[U8 val].create()
-    var oscAddress = OscString(address)
-    var types = OscString(_buildTypeString().clone())
+      var parts: Array[U8 val] = Array[U8 val].create()
+      var oscAddress = OscString(address)
+      var types = OscString(_buildTypeString().clone())
 
-    parts.concat(oscAddress.toBytes().values())
-    parts.concat(types.toBytes().values())
-    for arg in arguments.values() do
-      parts.concat(arg.toBytes().values())
+      parts.concat(oscAddress.toBytes().values())
+      parts.concat(types.toBytes().values())
+      for arg in arguments.values() do
+        parts.concat(arg.toBytes().values())
+      end
+
+      parts
     end
 
-    parts
+class OSCBundleElement
+  // bundleElement = [I32:size][ oscMessage | bundle ]
+  let _content: (OscMessage val | OSCBundle val)
+
+  new val create(content: (OscMessage val | OSCBundle val)) =>
+    _content = content
+
+  fun to_bytes(): Array[U8 val] val =>
+    let content_bytes: Array[U8 val] val = match _content
+      | let message: OscMessage val => message.toBytes()
+      | let bundle: OSCBundle val => bundle.to_bytes()
+    else
+      recover Array[U8 val] end
+    end
+    let size = content_bytes.size()
+    let size_bytes: Array[U8 val] val = recover 
+      [as U8 val: U8.from[USize]((size >> 24) and 0xFF),
+                  U8.from[USize]((size >> 16) and 0xFF),
+                  U8.from[USize]((size >> 8) and 0xFF),
+                  U8.from[USize]((size) and 0xFF)]
     end
 
+    recover
+      let bytes: Array[U8 val] = Array[U8 val].init(0, size + 4)
+      size_bytes.copy_to(bytes, 0, 0, size_bytes.size())
+      content_bytes.copy_to(bytes, 0, 4, content_bytes.size())
+      bytes
+    end
+
+//  fun val from_bytes(bytes: Array[U8] val): (OSCBundleElement val, Array[U8] val) =>
+//    (let content, let rest) = if bytes(4) == '#' then
+//        OSCBundle.from_bytes(bytes)
+//      else
+//        OscMessage.fromBytes(bytes)
+//      end
+//    (OSCBundleElement(content), rest)
+
+class OSCBundle
+  // bundle = [8B:"#bundle"][8B:timetag][bundleElement]*
+  let _timetag: U64 val
+  let _elements: Array[OSCBundleElement val] val
+
+  new val create(timetag: U64, elements: Array[OSCBundleElement val] val) =>
+    _timetag = timetag
+    _elements = elements
+
+  fun to_bytes(): Array[U8 val] val =>
+    let bytes: Array[U8 val] trn = recover Array[U8 val] end
+
+    let timetag = [as U8 val: U8.from[U64]((_timetag >> 56) and 0xFF),
+                        U8.from[U64]((_timetag >> 48) and 0xFF),
+                        U8.from[U64]((_timetag >> 40) and 0xFF),
+                        U8.from[U64]((_timetag >> 32) and 0xFF),
+                        U8.from[U64]((_timetag >> 24) and 0xFF),
+                        U8.from[U64]((_timetag >> 16) and 0xFF),
+                        U8.from[U64]((_timetag >> 8) and 0xFF),
+                        U8.from[U64]((_timetag and 0xFF))]
+
+
+    for tt in timetag.values() do
+      bytes.push(tt)
+    end
+    
+    for e in _elements.values() do
+      bytes.append(e.to_bytes())
+    end
+
+    consume bytes
 
