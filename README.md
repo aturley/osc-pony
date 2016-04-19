@@ -73,7 +73,10 @@ Address: /sndbuf/buf/rate
 To create an OSC message with integer, float, and string arguments with the address `/my/address`:
 
 ```
-  let message = OSCMessage('/my/address', recover [as OSCData: OSCInt(42), OSCFloat(3.14159), OSCString("this is a string")] end)
+  let message = OSCMessage('/my/address', 
+    recover [as OSCData: OSCInt(42), OSCFloat(3.14159), 
+      OSCString("this is astring")] 
+    end)
   let bytes = message.to_bytes()
 
   // now do something with these bytes ...
