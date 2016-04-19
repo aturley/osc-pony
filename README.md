@@ -1,7 +1,7 @@
 # osc-pony
 
 `osc-pony` is a [Pony](http://ponylang.org) library for encoding and
-decoding Open Sound Control (http://opensoundcontrol.org/)
+decoding [Open Sound Control](http://opensoundcontrol.org/)
 messages. The library does not provide a means of sending and
 receiving these messages over a network connection, however the
 `example` directory includes examples which demonstrate how to do
@@ -9,13 +9,13 @@ this.
 
 ## Overview
 
-The library provides an `OscMessage` class which can be used to
+The library provides an `OSCMessage` class which can be used to
 construct OSC messages and generate byte arrays which represent these
 messages in the OSC format, as well as to decode a byte array into an
-`OscMessage` class which can then be used within a Pony
+`OSCMessage` class which can then be used within a Pony
 program. Currently the system supports the three basic OSC message
-argument types, string (`OscString`), 32-bit float (OscFloat), and
-32-bit twos-complement signed integer (OscInt). While the OSC standard
+argument types, string (`OSCString`), 32-bit float (OSCFloat), and
+32-bit twos-complement signed integer (OSCInt). While the OSC standard
 describes several other message types and allows for arbitrary message
 types, these three types are sufficient for using most OSC-compatible
 programs, such as
@@ -73,8 +73,8 @@ Address: /sndbuf/buf/rate
 To create an OSC message with integer, float, and string arguments with the address `/my/address`:
 
 ```
-  let message = OscMessage('/my/address', recover [as OscData: OscInt(42), OscFloat(3.14159), OscString("this is a string")] end)
-  let bytes = message.toBytes()
+  let message = OSCMessage('/my/address', recover [as OSCData: OSCInt(42), OSCFloat(3.14159), OSCString("this is a string")] end)
+  let bytes = message.to_bytes()
 
   // now do something with these bytes ...
 ```
@@ -84,13 +84,13 @@ To receive an OSC message and print out its address and arguments:
 ```
   let data: Array[U8] val = ... // data from somewhere
 
-  let message = OSCParser.fromBytes(data)
+  let message = OSCParser.from_bytes(data)
   _env.out.print("Address: ".add(message.address))
   for arg in message.arguments.values() do
     match arg
-    | let i: OscInt val => _env.out.print(" int: ".add(i.value().string()))
-    | let f: OscFloat val => _env.out.print(" float: ".add(f.value().string()))
-    | let s: OscString val => _env.out.print(" string: ".add(s.value()))
+    | let i: OSCInt val => _env.out.print(" int: ".add(i.value().string()))
+    | let f: OSCFloat val => _env.out.print(" float: ".add(f.value().string()))
+    | let s: OSCString val => _env.out.print(" string: ".add(s.value()))
     else
       _env.err.print("Unknown argument type, this shouldn't happen.")
     end

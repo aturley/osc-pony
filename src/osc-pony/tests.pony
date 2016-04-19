@@ -19,7 +19,7 @@ class iso _TestArgsString is UnitTest
   fun apply(h: TestHelper) =>
     // 0000000 2f 61 00 00 2c 73 00 00 68 69 00 00
     // 000000c
-    let x = OscMessage("/a", recover [as OscData val: OscString("hi")] end).toBytes()
+    let x = OSCMessage("/a", recover [as OSCData val: OSCString("hi")] end).to_bytes()
     let y = [as U8: '/','a',0,0, ',','s',0,0, 'h','i',0,0]
     h.assert_eq[USize](y.size(), x.size())
     for i in Range[USize](0, y.size().min(x.size())) do
@@ -32,7 +32,7 @@ class iso _TestArgsFloat is UnitTest
   fun name(): String => "OSC Arguments: Float"
 
   fun apply(h: TestHelper) =>
-    let x = OscMessage("/a", recover [as OscData val: OscFloat(134.511)] end).toBytes()
+    let x = OSCMessage("/a", recover [as OSCData val: OSCFloat(134.511)] end).to_bytes()
     let y = [as U8: '/','a',0,0, ',','f',0,0, 0x43,0x06,0x82,0xd1]
     h.assert_eq[USize](y.size(), x.size())
     for i in Range[USize](0, y.size().min(x.size())) do
@@ -47,10 +47,10 @@ class iso _TestParserStringLimits is UnitTest
   fun apply(h: TestHelper) =>
     let bytes: Array[U8] val = recover [as U8: 'a','b','c','d', 'q','r',0,0, 'e','f','g',0] end
     try
-      (let str, let rest) = OscString("").fromBytes(bytes)
+      (let str, let rest) = OSCString("").from_bytes(bytes)
       h.assert_eq[USize](rest.size(), 4)
       match str
-      | let s: OscString val =>
+      | let s: OSCString val =>
         h.assert_eq[String](s.value(), "abcdqr")
       else
         h.fail()
@@ -61,11 +61,11 @@ class iso _TestParserStringLimits is UnitTest
 
     try
       var rest: Array[U8] val
-      (_, rest) = OscString("").fromBytes(bytes)
-      (let str, rest) = OscString("").fromBytes(rest)
+      (_, rest) = OSCString("").from_bytes(bytes)
+      (let str, rest) = OSCString("").from_bytes(rest)
       h.assert_eq[USize](rest.size(), 0)
       match str
-      | let s: OscString val =>
+      | let s: OSCString val =>
         h.assert_eq[String](s.value(), "efg")
       else
         h.fail()
@@ -80,10 +80,10 @@ class iso _TestParserIntLimits is UnitTest
   fun apply(h: TestHelper) =>
     let bytes: Array[U8] val = recover [as U8: 0,0,0,1, 'e','f','g',0] end
     try
-      (let int, let rest) = OscInt(0).fromBytes(bytes)
+      (let int, let rest) = OSCInt(0).from_bytes(bytes)
       h.assert_eq[USize](rest.size(), 4)
       match int
-      | let i: OscInt val =>
+      | let i: OSCInt val =>
         h.assert_eq[I32](i.value(), 1)
       else
         h.fail()
@@ -98,10 +98,10 @@ class iso _TestParserFloatLimits is UnitTest
   fun apply(h: TestHelper) =>
     let bytes: Array[U8] val = recover [as U8: 0x43,0x06,0x82,0xd1, 'e','f','g',0] end
     try
-      (let float, let rest) = OscFloat(0).fromBytes(bytes)
+      (let float, let rest) = OSCFloat(0).from_bytes(bytes)
       h.assert_eq[USize](rest.size(), 4)
       match float
-      | let f: OscFloat val =>
+      | let f: OSCFloat val =>
         h.assert_eq[F32](f.value(), 134.511)
       else
         h.fail()
@@ -116,10 +116,10 @@ class iso _TestParserBlob is UnitTest
   fun apply(h: TestHelper) =>
     let bytes: Array[U8] val = recover [as U8: 0x00,0x00,0x00,0x02, 'e','f',0,0, 'a', 'b', 'c', 'd'] end
     try
-      (let blob, let rest) = OscBlob(recover [as U8: 1] end).fromBytes(bytes)
+      (let blob, let rest) = OSCBlob(recover [as U8: 1] end).from_bytes(bytes)
       h.assert_eq[USize](rest.size(), 4)
       match blob
-      | let b: OscBlob val =>
+      | let b: OSCBlob val =>
         h.assert_eq[USize](2, b.value().size())
         h.assert_eq[U8]('e', b.value()(0))
         h.assert_eq[U8]('f', b.value()(1))
@@ -142,7 +142,7 @@ class iso _TestParser is UnitTest
                                            'a',0,0,0,
                                            0,0,0,0, 0,0,0,1] end
     try
-      let y = OSCDecoder.from_bytes(x).toBytes()
+      let y = OSCDecoder.from_bytes(x).to_bytes()
       h.assert_eq[USize](x.size(), y.size())
       for i in Range[USize](0, y.size().min(x.size())) do
         try

@@ -1,28 +1,39 @@
+"""
+# OSCPony Package
+
+Provides a set of classes for decoding a byte array into an OSC
+message and encoding an OSC message as a byte array. Currently
+supports all OSC 2.0 datatypes, but does not support OSC bundles.
+
+For more information about Open Sound Control, please see
+http://opensoundcontrol.org/.
+"""
+
 use "collections"
 
-interface OscData
+interface OSCData
   """
   This is the base class for all OSC message arguments.
   """
 
-  fun val toBytes(): Array[U8] val
+  fun val to_bytes(): Array[U8] val
   """
   Convert the argument into the appropriate byte array.
   """
 
-  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ?
+  fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) ?
   """
-  Convert the bytes to an OscData object, and also returns the
+  Convert the bytes to an OSCData object, and also returns the
   remainder of the bytes.
   """
 
-  fun toTypeByte(): U8
+  fun to_type_byte(): U8
   """
   Return the byte that represents the type of the argument for the
   type string.
   """
 
-class OscString is OscData
+class OSCString is OSCData
   """
   This class represents an OSC string. Strings are made up of quartets
   of bytes and terminated with 1 or more '\0' characters. Therefore
@@ -34,95 +45,95 @@ class OscString is OscData
   new val create(data: String) =>
     _data = data
 
-  fun val _createPadArray(): Array[U8] =>
+  fun val _create_pad_array(): Array[U8] =>
     Array[U8]().init(0, 4 - (_data.size() % 4))
 
-  fun val toBytes(): Array[U8] val =>
+  fun val to_bytes(): Array[U8] val =>
     recover
       Array[U8]().concat(_data.values())
-                 .concat(_createPadArray().values())
+                 .concat(_create_pad_array().values())
     end
 
-  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ? =>
+  fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) ? =>
     // find the end of the string data
-    var lastByte: USize = 3
-    while (lastByte < bytes.size()) and (bytes(lastByte) != '\0') do
-      lastByte = lastByte + 4
+    var last_byte: USize = 3
+    while (last_byte < bytes.size()) and (bytes(last_byte) != '\0') do
+      last_byte = last_byte + 4
     end
-    if lastByte >= bytes.size() then
+    if last_byte >= bytes.size() then
       error
     end
 
     // find the first null in the string
-    var firstNull: USize = 0
-    while bytes(firstNull) != '\0' do
-      firstNull = firstNull + 1
+    var first_null: USize = 0
+    while bytes(first_null) != '\0' do
+      first_null = first_null + 1
     end
 
     // create the string
     var str: String val = recover
       let s = String()
 
-      for i in Range[USize](0, firstNull) do
+      for i in Range[USize](0, first_null) do
         s.push(bytes(i))
       end
       consume s
     end
-    (recover OscString(str.clone()) end, recover bytes.slice(lastByte + 1) end)
+    (recover OSCString(str.clone()) end, recover bytes.slice(last_byte + 1) end)
                           
-  fun toTypeByte(): U8 =>
+  fun to_type_byte(): U8 =>
     's'
 
   fun val value(): String val => _data
 
-class OscInt is OscData
+class OSCInt is OSCData
   let _data: I32
   new val create(data: I32) =>
     _data = data
 
-  fun val toBytes(): Array[U8 val] val =>
+  fun val to_bytes(): Array[U8 val] val =>
     recover [as U8 val: U8().from[I32]((_data >> 24) and 0xFF),
                         U8().from[I32]((_data >> 16) and 0xFF),
                         U8().from[I32]((_data >> 8) and 0xFF),
                         U8().from[I32](_data and 0xFF)] end
 
-  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ? =>
+  fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) ? =>
     let num = I32.from[U32]((U32.from[U8](bytes(0)) << 24) +
                             (U32.from[U8](bytes(1)) << 16) +
                             (U32.from[U8](bytes(2)) << 8) +
                             U32.from[U8](bytes(3)))
-    (recover OscInt(num) end, recover bytes.slice(4) end)
+    (recover OSCInt(num) end, recover bytes.slice(4) end)
 
-  fun toTypeByte(): U8 =>
+  fun to_type_byte(): U8 =>
     'i'
 
   fun val value(): I32 => _data
 
-class OscFloat is OscData
+class OSCFloat is OSCData
   let _data: F32
   new val create(data: F32) =>
     _data = data
 
-  fun val toBytes(): Array[U8 val] val =>
+  fun val to_bytes(): Array[U8 val] val =>
     let bits = _data.bits()
     recover [as U8 val: U8().from[U32]((bits  >> 24) and 0xFF),
                         U8().from[U32]((bits >> 16) and 0xFF),
                         U8().from[U32]((bits >> 8) and 0xFF),
                         U8().from[U32](bits and 0xFF)] end
 
-  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ? =>
+  fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) ? =>
     let num = F32.from_bits((U32.from[U8](bytes(0)) << 24) +
                             (U32.from[U8](bytes(1)) << 16) +
                             (U32.from[U8](bytes(2)) << 8) +
                             (U32.from[U8](bytes(3))))
-    (recover OscFloat(num) end, recover bytes.slice(4) end)
+    (recover OSCFloat(num) end, recover bytes.slice(4) end)
 
-  fun toTypeByte(): U8 =>
+  fun to_type_byte(): U8 =>
     'f'
 
   fun val value(): F32 val => _data
 
-class OscBlob is OscData
+class OSCBlob is OSCData
   """
   This class represents an OSC blob. Blobs are made up of quartets
   of bytes and terminated with 1 or more '\0' characters. Therefore
@@ -134,13 +145,13 @@ class OscBlob is OscData
   new val create(data: Array[U8] val) =>
     _data = data
 
-  fun val _createPadArray(): Array[U8] =>
+  fun val _create_pad_array(): Array[U8] =>
     // pad to the next quartet of bytes if necessary
     let mapping = [as USize: 0, 3, 2, 1]
     let pad_size = try mapping(_data.size() % 4) else 0 end
     Array[U8]().init(0, pad_size)
 
-  fun val toBytes(): Array[U8] val =>
+  fun val to_bytes(): Array[U8] val =>
     let size: U32 = U32.from[USize](_data.size())
     recover
       Array[U8]().push(U8.from[U32]((size >> 24) and 0xFF))
@@ -148,10 +159,10 @@ class OscBlob is OscData
                  .push(U8.from[U32]((size >> 8) and 0xFF))
                  .push(U8.from[U32]((size and 0xFF)))
                  .concat(_data.values())
-                 .concat(_createPadArray().values())
+                 .concat(_create_pad_array().values())
     end
 
-  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ? =>
+  fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) ? =>
     let size = USize.from[U32]((U32.from[U8](bytes(0)) << 24) +
                               (U32.from[U8](bytes(1)) << 16) +
                               (U32.from[U8](bytes(2)) << 8) +
@@ -166,52 +177,52 @@ class OscBlob is OscData
     // Data comes in quartets of bytes, find the quartet size
     let quartet_size = (((size - 1) / 4) + 1) * 4
 
-    (OscBlob(data), recover bytes.slice(4 + quartet_size) end)
+    (OSCBlob(data), recover bytes.slice(4 + quartet_size) end)
                           
-  fun toTypeByte(): U8 =>
+  fun to_type_byte(): U8 =>
     'b'
 
   fun val value(): Array[U8] val => _data
 
-class OscTrue is OscData
+class OSCTrue is OSCData
   let _data: Bool
   new val create() =>
     _data = true
 
-  fun val toBytes(): Array[U8 val] val =>
+  fun val to_bytes(): Array[U8 val] val =>
     recover Array[U8](0) end
 
-  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) =>
-    (OscTrue, recover bytes.slice(0) end)
+  fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) =>
+    (OSCTrue, recover bytes.slice(0) end)
 
-  fun toTypeByte(): U8 =>
+  fun to_type_byte(): U8 =>
     'T'
 
   fun val value(): Bool => _data
 
-class OscFalse is OscData
+class OSCFalse is OSCData
   let _data: Bool
   new val create() =>
     _data = true
 
-  fun val toBytes(): Array[U8 val] val =>
+  fun val to_bytes(): Array[U8 val] val =>
     recover Array[U8](0) end
 
-  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) =>
-    (OscFalse, recover bytes.slice(0) end)
+  fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) =>
+    (OSCFalse, recover bytes.slice(0) end)
 
-  fun toTypeByte(): U8 =>
+  fun to_type_byte(): U8 =>
     'F'
 
   fun val value(): Bool => _data
 
-class OscTimestamp is OscData
+class OSCTimestamp is OSCData
   let _data: U64
 
   new val create(data: U64) =>
     _data = data
 
-  fun val toBytes(): Array[U8] val =>
+  fun val to_bytes(): Array[U8] val =>
     recover
       Array[U8]().push(U8.from[U64]((_data >> 56) and 0xFF))
                  .push(U8.from[U64]((_data >> 48) and 0xFF))
@@ -223,7 +234,7 @@ class OscTimestamp is OscData
                  .push(U8.from[U64]((_data and 0xFF)))
     end
 
-  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) ? =>
+  fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) ? =>
     let data = ((U64.from[U8](bytes(0)) << 56) +
                 (U64.from[U8](bytes(1)) << 48) +
                 (U64.from[U8](bytes(2)) << 40) +
@@ -233,56 +244,56 @@ class OscTimestamp is OscData
                 (U64.from[U8](bytes(6)) << 8) +
                 U64.from[U8](bytes(7)))
 
-    (OscTimestamp(data), recover bytes.slice(8) end)
+    (OSCTimestamp(data), recover bytes.slice(8) end)
                           
-  fun toTypeByte(): U8 =>
+  fun to_type_byte(): U8 =>
     't'
 
   fun val value(): U64 => _data
 
-class OscNull is OscData
+class OSCNull is OSCData
   let _data: None
   new val create() =>
     _data = None
 
-  fun val toBytes(): Array[U8 val] val =>
+  fun val to_bytes(): Array[U8 val] val =>
     recover Array[U8](0) end
 
-  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) =>
-    (OscNull, recover bytes.slice(0) end)
+  fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) =>
+    (OSCNull, recover bytes.slice(0) end)
 
-  fun toTypeByte(): U8 =>
+  fun to_type_byte(): U8 =>
     'N'
 
   fun val value(): None => _data
 
-class OscImpulse is OscData
+class OSCImpulse is OSCData
   let _data: None
   new val create() =>
     _data = None
 
-  fun val toBytes(): Array[U8 val] val =>
+  fun val to_bytes(): Array[U8 val] val =>
     recover Array[U8](0) end
 
-  fun val fromBytes(bytes: Array[U8] val): (OscData val, Array[U8] val) =>
-    (OscImpulse, recover bytes.slice(0) end)
+  fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) =>
+    (OSCImpulse, recover bytes.slice(0) end)
 
-  fun toTypeByte(): U8 =>
+  fun to_type_byte(): U8 =>
     'I'
 
   fun val value(): None => _data
 
-type Argument is OscData
+type Argument is OSCData
 type Arguments is Array[Argument val]
 
-class OscMessage
+class OSCMessage
   """
   This class represents OSC messages, as defined by the OSC standard
   (http://opensoundcontrol.org/). The byte reprsentation of an OSC
   messages consist of an address string, a type string, and zero or
   more arguments. Because the type string can be derived from the
   types of the arguments, the user of this class is not responsible
-  for providing a type string when creating an `OscMessage`.
+  for providing a type string when creating an `OSCMessage`.
   """
 
   let address: String val
@@ -290,33 +301,33 @@ class OscMessage
 
   new val create(address': String val, arguments': Arguments val) =>
   """
-  Create an OscMessage from an address string and one or more OscData
+  Create an OSCMessage from an address string and one or more OSCData
   arguments.
   """
     address = address'
     arguments = arguments'
 
-  fun _buildTypeString(): String ref =>
-    var argumentsString = String().push(',')
+  fun _build_type_string(): String ref =>
+    var arguments_string = String().push(',')
     for arg in arguments.values() do
-      argumentsString.push(arg.toTypeByte())
+      arguments_string.push(arg.to_type_byte())
     end
-    argumentsString
+    arguments_string
 
-  fun val toBytes(): Array[U8 val] val =>
+  fun val to_bytes(): Array[U8 val] val =>
   """
   Generate a byte array that represents an OSC message as defined by
   the OSC standard.
   """
     recover
     var parts: Array[U8 val] = Array[U8 val].create()
-    var oscAddress = OscString(address)
-    var types = OscString(_buildTypeString().clone())
+    var oscAddress = OSCString(address)
+    var types = OSCString(_build_type_string().clone())
 
-    parts.concat(oscAddress.toBytes().values())
-    parts.concat(types.toBytes().values())
+    parts.concat(oscAddress.to_bytes().values())
+    parts.concat(types.to_bytes().values())
     for arg in arguments.values() do
-      parts.concat(arg.toBytes().values())
+      parts.concat(arg.to_bytes().values())
     end
 
     parts

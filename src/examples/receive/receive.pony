@@ -10,7 +10,7 @@ use "../../osc-pony"
 
 use "net"
 
-class UdpClient is UDPNotify
+class UDPClient is UDPNotify
   let _env: Env
 
   new iso create(env: Env) =>
@@ -18,13 +18,13 @@ class UdpClient is UDPNotify
 
   fun ref received(sock: UDPSocket ref, data: Array[U8] iso, from: IPAddress) =>
     try
-      let message = OSCDecoder.from_bytes(consume data) as OscMessage val
+      let message = OSCDecoder.from_bytes(consume data) as OSCMessage val
       _env.out.print("Address: ".add(message.address))
       for arg in message.arguments.values() do
         match arg
-        | let i: OscInt val => _env.out.print(" int: ".add(i.value().string()))
-        | let f: OscFloat val => _env.out.print(" float: ".add(f.value().string()))
-        | let s: OscString val => _env.out.print(" string: ".add(s.value()))
+        | let i: OSCInt val => _env.out.print(" int: ".add(i.value().string()))
+        | let f: OSCFloat val => _env.out.print(" float: ".add(f.value().string()))
+        | let s: OSCString val => _env.out.print(" string: ".add(s.value()))
         else
           _env.err.print("Unknown argument type, this shouldn't happen.")
         end
@@ -47,4 +47,8 @@ actor Main
       "6447"
     end
 
-    UDPSocket(UdpClient(env), host, port)
+    try
+      UDPSocket(env.root as AmbientAuth, UDPClient(env), host, port)
+    else
+      env.err.print("could not connect")
+    end

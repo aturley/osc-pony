@@ -10,16 +10,16 @@ use "../../osc-pony"
 
 use "net"
 
-class UdpClient is UDPNotify
+class UDPClient is UDPNotify
   let _destination: IPAddress
-  let _message: OscMessage val
+  let _message: OSCMessage val
 
-  new iso create(env: Env, destination: IPAddress, message: OscMessage val) =>
+  new iso create(env: Env, destination: IPAddress, message: OSCMessage val) =>
     _destination = destination
     _message = message
 
   fun ref listening(sock: UDPSocket ref) =>
-    sock.write(_message.toBytes(), _destination)
+    sock.write(_message.to_bytes(), _destination)
     sock.dispose()
 
 actor Main
@@ -36,10 +36,11 @@ actor Main
       "6447"
     end
 
-    let message = OscMessage("/sndbuf/buf/rate", recover [as OscData val: OscFloat(0.2)] end)
+    let message = OSCMessage("/sndbuf/buf/rate", recover [as OSCData val: OSCFloat(0.2)] end)
     try
-      let destination = DNS.ip4(host, port)(0)
-      UDPSocket(UdpClient(env, (consume destination), message))
+      let auth = env.root as AmbientAuth 
+      let destination = DNS.ip4(auth, host, port)(0)
+      UDPSocket(auth, UDPClient(env, (consume destination), message))
     else
       env.err.print("could not connect")
     end
