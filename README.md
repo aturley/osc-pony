@@ -75,7 +75,7 @@ To create an OSC message with integer, float, and string arguments with the addr
 ```
   let message = OSCMessage('/my/address', 
     recover [as OSCData: OSCInt(42), OSCFloat(3.14159), 
-      OSCString("this is astring")] 
+      OSCString("this is a string")] 
     end)
   let bytes = message.to_bytes()
 
