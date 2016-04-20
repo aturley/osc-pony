@@ -6,7 +6,7 @@ be found in `examples/osc/OSC_recv.ck` when you download the Chuck
 source code.
 """
 
-use "../../osc-pony"
+use "../src/osc-pony"
 
 use "net"
 
@@ -38,7 +38,7 @@ actor Main
 
     let message = OSCMessage("/sndbuf/buf/rate", recover [as OSCData val: OSCFloat(0.2)] end)
     try
-      let auth = env.root as AmbientAuth 
+      let auth = env.root as AmbientAuth
       let destination = DNS.ip4(auth, host, port)(0)
       UDPSocket(auth, UDPClient(env, (consume destination), message))
     else
