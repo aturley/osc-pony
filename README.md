@@ -29,7 +29,7 @@ currently supported for message decoding.
 
 ## The Examples
 
-There are two example programs in `src/examples`. One sends an OSC
+There are two example programs in `examples`. One sends an OSC
 message, the other waits for incoming OSC messages and when it
 receives them it prints out the message address and arguments. By
 default the programs will work together, so that if you are running
@@ -44,8 +44,8 @@ code of the Chuck programming language.
 From the directory where you checked out `osc-pony`, run:
 
 ```
-ponyc src/examples/receive/
-ponyc src/send/send/
+ponyc examples/receive/
+ponyc send/send/
 ```
 
 Now, in one terminal window run the `receive` program:
