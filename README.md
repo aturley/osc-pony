@@ -45,7 +45,7 @@ From the directory where you checked out `osc-pony`, run:
 
 ```
 ponyc examples/receive/
-ponyc send/send/
+ponyc examples/send/
 ```
 
 Now, in one terminal window run the `receive` program:
