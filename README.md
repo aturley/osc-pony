@@ -13,19 +13,16 @@ The library provides an `OSCMessage` class which can be used to
 construct OSC messages and generate byte arrays which represent these
 messages in the OSC format, as well as to decode a byte array into an
 `OSCMessage` class which can then be used within a Pony
-program. Currently the system supports the three basic OSC message
-argument types, string (`OSCString`), 32-bit float (OSCFloat), and
-32-bit twos-complement signed integer (OSCInt). While the OSC standard
-describes several other message types and allows for arbitrary message
-types, these three types are sufficient for using most OSC-compatible
-programs, such as
+program. Currently the system supports all of the OSC argument types
+from the
+[OSC 1.1 specification](http://opensoundcontrol.org/spec-1_1). This
+should be suffiecient to use with systems like
 [Reaktor](http://www.native-instruments.com/en/products/komplete/synths/reaktor-6/),
 [PureData](http://puredata.info),
 [Max/MSP](https://cycling74.com/products/max/),
 [SuperCollider](http://supercollider.github.io)/[Overtone](http://overtone.github.io),
 and [Chuck](http://chuck.cs.princeton.edu). User-defined argument
-types can be defined for creating a message to be encoded, but are not
-currently supported for message decoding.
+types can also be added for encoding and decoding.
 
 ## The Examples
 
@@ -45,7 +42,7 @@ From the directory where you checked out `osc-pony`, run:
 
 ```
 ponyc examples/receive/
-ponyc send/send/
+ponyc examples/send/
 ```
 
 Now, in one terminal window run the `receive` program:
@@ -121,4 +118,3 @@ ponyc --path=/pony/libraries /my/program
 ## TODO
 
 * Support bundles
-* Support user-defined argument types.

@@ -79,7 +79,7 @@ class OSCString is OSCData
       end
       consume s
     end
-    (recover OSCString(str.clone()) end, recover bytes.slice(last_byte + 1) end)
+    (recover OSCString(str) end, recover bytes.slice(last_byte + 1) end)
 
   fun to_type_byte(): U8 =>
     's'

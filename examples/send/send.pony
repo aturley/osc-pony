@@ -6,7 +6,7 @@ be found in `examples/osc/OSC_recv.ck` when you download the Chuck
 source code.
 """
 
-use "../src/osc-pony"
+use "../../src/osc-pony"
 
 use "net"
 
