@@ -39,7 +39,7 @@ class OSCString is OSCData
   of bytes and terminated with 1 or more '\0' characters. Therefore
   the size of an OSC string is always a multiple of 4.
   """
-  
+
   let _data: String
 
   new val create(data: String) =>
@@ -72,15 +72,15 @@ class OSCString is OSCData
 
     // create the string
     var str: String val = recover
-      let s = String()
+      let s = String(first_null)
 
       for i in Range[USize](0, first_null) do
         s.push(bytes(i))
       end
       consume s
     end
-    (recover OSCString(str.clone()) end, recover bytes.slice(last_byte + 1) end)
-                          
+    (recover OSCString(str) end, recover bytes.slice(last_byte + 1) end)
+
   fun to_type_byte(): U8 =>
     's'
 
@@ -139,7 +139,7 @@ class OSCBlob is OSCData
   of bytes and terminated with 1 or more '\0' characters. Therefore
   the size of an OSC blob is always a multiple of 4.
   """
-  
+
   let _data: Array[U8] val
 
   new val create(data: Array[U8] val) =>
@@ -178,7 +178,7 @@ class OSCBlob is OSCData
     let quartet_size = (((size - 1) / 4) + 1) * 4
 
     (OSCBlob(data), recover bytes.slice(4 + quartet_size) end)
-                          
+
   fun to_type_byte(): U8 =>
     'b'
 
@@ -245,7 +245,7 @@ class OSCTimestamp is OSCData
                 U64.from[U8](bytes(7)))
 
     (OSCTimestamp(data), recover bytes.slice(8) end)
-                          
+
   fun to_type_byte(): U8 =>
     't'
 
