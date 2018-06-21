@@ -50,14 +50,15 @@ class OSCString is OSCData
 
   fun val to_bytes(): Array[U8] val =>
     recover
-      Array[U8]().concat(_data.values())
-                 .concat(_create_pad_array().values())
+      Array[U8]
+        .>concat(_data.values())
+        .>concat(_create_pad_array().values())
     end
 
   fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) ? =>
     // find the end of the string data
     var last_byte: USize = 3
-    while (last_byte < bytes.size()) and (bytes(last_byte) != '\0') do
+    while (last_byte < bytes.size()) and (bytes(last_byte)? != '\0') do
       last_byte = last_byte + 4
     end
     if last_byte >= bytes.size() then
@@ -66,7 +67,7 @@ class OSCString is OSCData
 
     // find the first null in the string
     var first_null: USize = 0
-    while bytes(first_null) != '\0' do
+    while bytes(first_null)? != '\0' do
       first_null = first_null + 1
     end
 
@@ -75,7 +76,7 @@ class OSCString is OSCData
       let s = String(first_null)
 
       for i in Range[USize](0, first_null) do
-        s.push(bytes(i))
+        s.push(bytes(i)?)
       end
       consume s
     end
@@ -92,16 +93,16 @@ class OSCInt is OSCData
     _data = data
 
   fun val to_bytes(): Array[U8 val] val =>
-    recover [as U8 val: U8().from[I32]((_data >> 24) and 0xFF),
-                        U8().from[I32]((_data >> 16) and 0xFF),
-                        U8().from[I32]((_data >> 8) and 0xFF),
-                        U8().from[I32](_data and 0xFF)] end
+    recover [as U8 val: U8.from[I32]((_data >> 24) and 0xFF)
+                        U8.from[I32]((_data >> 16) and 0xFF)
+                        U8.from[I32]((_data >> 8) and 0xFF)
+                        U8.from[I32](_data and 0xFF)] end
 
   fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) ? =>
-    let num = I32.from[U32]((U32.from[U8](bytes(0)) << 24) +
-                            (U32.from[U8](bytes(1)) << 16) +
-                            (U32.from[U8](bytes(2)) << 8) +
-                            U32.from[U8](bytes(3)))
+    let num = I32.from[U32]((U32.from[U8](bytes(0)?) << 24) +
+                            (U32.from[U8](bytes(1)?) << 16) +
+                            (U32.from[U8](bytes(2)?) << 8) +
+                            U32.from[U8](bytes(3)?))
     (recover OSCInt(num) end, recover bytes.slice(4) end)
 
   fun to_type_byte(): U8 =>
@@ -116,16 +117,16 @@ class OSCFloat is OSCData
 
   fun val to_bytes(): Array[U8 val] val =>
     let bits = _data.bits()
-    recover [as U8 val: U8().from[U32]((bits  >> 24) and 0xFF),
-                        U8().from[U32]((bits >> 16) and 0xFF),
-                        U8().from[U32]((bits >> 8) and 0xFF),
-                        U8().from[U32](bits and 0xFF)] end
+    recover [as U8 val: U8.from[U32]((bits  >> 24) and 0xFF)
+                        U8.from[U32]((bits >> 16) and 0xFF)
+                        U8.from[U32]((bits >> 8) and 0xFF)
+                        U8.from[U32](bits and 0xFF)] end
 
   fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) ? =>
-    let num = F32.from_bits((U32.from[U8](bytes(0)) << 24) +
-                            (U32.from[U8](bytes(1)) << 16) +
-                            (U32.from[U8](bytes(2)) << 8) +
-                            (U32.from[U8](bytes(3))))
+    let num = F32.from_bits((U32.from[U8](bytes(0)?) << 24) +
+                            (U32.from[U8](bytes(1)?) << 16) +
+                            (U32.from[U8](bytes(2)?) << 8) +
+                            (U32.from[U8](bytes(3)?)))
     (recover OSCFloat(num) end, recover bytes.slice(4) end)
 
   fun to_type_byte(): U8 =>
@@ -147,26 +148,26 @@ class OSCBlob is OSCData
 
   fun val _create_pad_array(): Array[U8] =>
     // pad to the next quartet of bytes if necessary
-    let mapping = [as USize: 0, 3, 2, 1]
-    let pad_size = try mapping(_data.size() % 4) else 0 end
+    let mapping = [as USize: 0; 3; 2; 1]
+    let pad_size = try mapping(_data.size() % 4)? else 0 end
     Array[U8]().init(0, pad_size)
 
   fun val to_bytes(): Array[U8] val =>
     let size: U32 = U32.from[USize](_data.size())
     recover
-      Array[U8]().push(U8.from[U32]((size >> 24) and 0xFF))
-                 .push(U8.from[U32]((size >> 16) and 0xFF))
-                 .push(U8.from[U32]((size >> 8) and 0xFF))
-                 .push(U8.from[U32]((size and 0xFF)))
-                 .concat(_data.values())
-                 .concat(_create_pad_array().values())
+      Array[U8]().>push(U8.from[U32]((size >> 24) and 0xFF))
+                 .>push(U8.from[U32]((size >> 16) and 0xFF))
+                 .>push(U8.from[U32]((size >> 8) and 0xFF))
+                 .>push(U8.from[U32]((size and 0xFF)))
+                 .>concat(_data.values())
+                 .>concat(_create_pad_array().values())
     end
 
   fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) ? =>
-    let size = USize.from[U32]((U32.from[U8](bytes(0)) << 24) +
-                              (U32.from[U8](bytes(1)) << 16) +
-                              (U32.from[U8](bytes(2)) << 8) +
-                              U32.from[U8](bytes(3)))
+    let size = USize.from[U32]((U32.from[U8](bytes(0)?) << 24) +
+                              (U32.from[U8](bytes(1)?) << 16) +
+                              (U32.from[U8](bytes(2)?) << 8) +
+                              U32.from[U8](bytes(3)?))
 
     let data: Array[U8] val = recover
       let d = Array[U8](size)
@@ -224,25 +225,25 @@ class OSCTimestamp is OSCData
 
   fun val to_bytes(): Array[U8] val =>
     recover
-      Array[U8]().push(U8.from[U64]((_data >> 56) and 0xFF))
-                 .push(U8.from[U64]((_data >> 48) and 0xFF))
-                 .push(U8.from[U64]((_data >> 40) and 0xFF))
-                 .push(U8.from[U64]((_data >> 32) and 0xFF))
-                 .push(U8.from[U64]((_data >> 24) and 0xFF))
-                 .push(U8.from[U64]((_data >> 16) and 0xFF))
-                 .push(U8.from[U64]((_data >> 8) and 0xFF))
-                 .push(U8.from[U64]((_data and 0xFF)))
+      Array[U8]().>push(U8.from[U64]((_data >> 56) and 0xFF))
+                 .>push(U8.from[U64]((_data >> 48) and 0xFF))
+                 .>push(U8.from[U64]((_data >> 40) and 0xFF))
+                 .>push(U8.from[U64]((_data >> 32) and 0xFF))
+                 .>push(U8.from[U64]((_data >> 24) and 0xFF))
+                 .>push(U8.from[U64]((_data >> 16) and 0xFF))
+                 .>push(U8.from[U64]((_data >> 8) and 0xFF))
+                 .>push(U8.from[U64]((_data and 0xFF)))
     end
 
   fun val from_bytes(bytes: Array[U8] val): (OSCData val, Array[U8] val) ? =>
-    let data = ((U64.from[U8](bytes(0)) << 56) +
-                (U64.from[U8](bytes(1)) << 48) +
-                (U64.from[U8](bytes(2)) << 40) +
-                (U64.from[U8](bytes(3)) << 32) +
-                (U64.from[U8](bytes(4)) << 24) +
-                (U64.from[U8](bytes(5)) << 16) +
-                (U64.from[U8](bytes(6)) << 8) +
-                U64.from[U8](bytes(7)))
+    let data = ((U64.from[U8](bytes(0)?) << 56) +
+                (U64.from[U8](bytes(1)?) << 48) +
+                (U64.from[U8](bytes(2)?) << 40) +
+                (U64.from[U8](bytes(3)?) << 32) +
+                (U64.from[U8](bytes(4)?) << 24) +
+                (U64.from[U8](bytes(5)?) << 16) +
+                (U64.from[U8](bytes(6)?) << 8) +
+                U64.from[U8](bytes(7)?))
 
     (OSCTimestamp(data), recover bytes.slice(8) end)
 
@@ -308,9 +309,9 @@ class OSCMessage
     arguments = arguments'
 
   fun _build_type_string(): String ref =>
-    var arguments_string = String().push(',')
+    var arguments_string = String().>push(',')
     for arg in arguments.values() do
-      arguments_string.push(arg.to_type_byte())
+      arguments_string.>push(arg.to_type_byte())
     end
     arguments_string
 
@@ -332,5 +333,3 @@ class OSCMessage
 
     parts
     end
-
-
